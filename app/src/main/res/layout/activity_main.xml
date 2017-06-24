@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/mainView"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/background">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:text="@string/step_one"
+        android:textColor="@color/textGray"
+        android:gravity="center"
+        android:background="@color/step_prompt"
+        android:textIsSelectable="false"
+        android:layout_marginTop="@dimen/activity_all_margin">
+    </TextView>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_horizontal">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:orientation="vertical"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:text="@string/contact_prompt"
+                android:textColor="@color/colorPrimaryDark"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:textIsSelectable="false">
+            </TextView>
+
+            <AutoCompleteTextView
+                android:id="@+id/contactField"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:textColor="@color/textGray"
+                android:textColorHighlight="@color/textGray"
+                android:textStyle="bold">
+            </AutoCompleteTextView>
+        </LinearLayout>
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:text="@string/step_two"
+        android:textColor="@color/textGray"
+        android:gravity="center"
+        android:background="@color/step_prompt"
+        android:textIsSelectable="false">
+    </TextView>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:orientation="horizontal"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content">
+
+        <RadioGroup
+            android:id="@+id/group_one"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <RadioButton
+                android:id="@+id/one_min"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/one_min_radio"/>
+
+            <RadioButton
+                android:id="@+id/five_min"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/five_min_radio" />
+
+            <RadioButton
+                android:id="@+id/ten_min"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/ten_min_radio" />
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/group_two"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <RadioButton
+                android:id="@+id/thirty_min"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/thirty_min_radio"
+                android:checked="true"/>
+
+            <RadioButton
+                android:id="@+id/one_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/one_hour_radio" />
+
+            <RadioButton
+                android:id="@+id/six_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/six_hour_radio"/>
+        </RadioGroup>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:text="@string/step_three"
+        android:textColor="@color/textGray"
+        android:gravity="center"
+        android:background="@color/step_prompt"
+        android:textIsSelectable="false">
+    </TextView>
+
+    <Button android:id="@+id/startButton"
+            android:clickable="true"
+            android:text="@string/start_button"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom"
+            android:background="@color/goGreen"
+            android:layout_margin="@dimen/activity_all_margin">
+    </Button>
+
+</LinearLayout>

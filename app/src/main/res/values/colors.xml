@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#262626</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="highlight">#cccccc</color>
+    <color name="smokyBlack">#100c08</color>
+    <color name="background">#a6a6a6</color>
+    <color name="step_prompt">#333333</color>
+    <color name="textGray">#e6e6e6</color>
+    <color name="goGreen">#009900</color>
+    <color name="stopRed">#ff0000</color>
+    <color name="skyBlue">#52A4C9</color>
+</resources>
