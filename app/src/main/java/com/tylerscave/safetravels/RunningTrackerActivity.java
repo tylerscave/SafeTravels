@@ -80,10 +80,7 @@ public class RunningTrackerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (alarmManager != null) {
-            alarmManager.cancel(pendingAlarmIntent);
-        }
-        stopService(new Intent(this, LocationService.class));
+        stopIt();
     }
 
 //########################################## Button Listeners ##########################################################
@@ -98,10 +95,7 @@ public class RunningTrackerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Cancel the updates
                 Toast.makeText(getApplicationContext(), "******* Updates Canceled ******", Toast.LENGTH_LONG).show();
-                if (alarmManager != null) {
-                    alarmManager.cancel(pendingAlarmIntent);
-                }
-                stopService(new Intent(RunningTrackerActivity.this, LocationService.class));
+                stopIt();
 
                 // Update text and image
                 catDrivingAnimation.stop();
@@ -127,5 +121,17 @@ public class RunningTrackerActivity extends AppCompatActivity {
                 startActivity(myIntent);
             }
         };
+    }
+
+//######################################## Helper methods ##############################################################
+
+    /**
+     * stopIt() stops any scheduled alarms and the location service
+     */
+    private void stopIt() {
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingAlarmIntent);
+        }
+        stopService(new Intent(RunningTrackerActivity.this, LocationService.class));
     }
 }
