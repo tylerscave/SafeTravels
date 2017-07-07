@@ -75,6 +75,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // Initialize the sms (text message) object to handle all sms services
         sms = new SMS(this);
+        // set the phone owners first name
+        safeTravels.setOwnerName(sms.getPhoneOwner());
         // Get contacts and values in their perspective array lists
         contacts = sms.getContacts();
         numbers.addAll(contacts.get("numbers"));

@@ -84,13 +84,15 @@ public class SMS {
      * sendSMS() is used to send a SMS message with the users current location
      */
     protected void sendSMS(String phoneNumber, Location currentLocation) {
-        // Initialize the SMS manager and get timestamp
+        // Initialize the SMS manager and get timestamp and phone owner
+        SafeTravels safeTravels = SafeTravels.getInstance();
         SmsManager smsManager = SmsManager.getDefault();
         String timeStamp = getTimeStamp();
+        String ownerName = safeTravels.getOwnerName();
 
         // Prepare the text message
         StringBuffer smsBody = new StringBuffer();
-        smsBody.append("My Location provided by SafeTravels!\n\n");
+        smsBody.append(ownerName + "'s location from SafeTravels!\n\n");
         smsBody.append("https://maps.google.com/maps?q=");
         smsBody.append("My+Location+at+"+timeStamp+"@");
         smsBody.append(currentLocation.getLatitude());
@@ -104,6 +106,20 @@ public class SMS {
 
         // Send the text to the desired user
         smsManager.sendTextMessage(phoneNumber, null, smsBody.toString(), null, null);
+    }
+
+    /**
+     * getPhoneOwner() is used to query the phone for the owners first name
+     * @return the phone owners first name
+     */
+    protected String getPhoneOwner() {
+        final String[] OWNER = new String[] {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME};
+        Cursor cursor = context.getContentResolver().query(ContactsContract.Profile.CONTENT_URI, OWNER, null, null, null);
+        cursor.moveToFirst();
+        String ownerName = cursor.getString(0);
+        String nameArray[] = ownerName.split(" ", 2);
+        cursor.close();
+        return nameArray[0];
     }
 
     /**

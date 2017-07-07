@@ -21,6 +21,7 @@ public class SafeTravels extends Application {
     private Location location;
     private String contactName;
     private String contactNumber;
+    private String phoneOwner;
     private final String SMS_ACTION = "com.tylerscave.safetravels.action.SMS";
 
     /**
@@ -86,5 +87,12 @@ public class SafeTravels extends Application {
     }
     protected void setContactName(String name) {
         this.contactName = name;
+    }
+
+    protected String getOwnerName() {
+        return phoneOwner;
+    }
+    protected void setOwnerName(String name) {
+        this.phoneOwner = name;
     }
 }
