@@ -9,12 +9,13 @@ The application allows the user to enter a mobile contact from their list of con
 *  Sends location updates as SMS messages with a google maps URL so anybody with a smart phone can receive the updates.
 *  Simple, lightweight, and very easy to use
 
-### Demo
+### Contact/Support
+TylersCaveSoftware@gmail.com
+
+### Screenshots
 ![splashscreen](https://user-images.githubusercontent.com/14061153/27511861-f5a46288-58e3-11e7-8bb4-5baecd05bdb6.png)
 ![startscreen](https://user-images.githubusercontent.com/14061153/27999516-ee1f2d54-64d2-11e7-9ca4-cf6597b4ddd1.png)
 ![runningscreen](https://user-images.githubusercontent.com/14061153/27999532-17a62790-64d3-11e7-95bb-3a5923537ea9.png)
 ![completedscreen](https://user-images.githubusercontent.com/14061153/27999534-1e23bd80-64d3-11e7-85d3-e07e20af4e5d.png)
 ![sms](https://user-images.githubusercontent.com/14061153/27999537-25eb6cca-64d3-11e7-85d1-740aecbe29b9.png)
 
-### Contact/Support
-TylersCaveSoftware@gmail.com
