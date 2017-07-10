@@ -73,6 +73,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mainView = (LinearLayout) findViewById(R.id.mainView);
         safeTravels = SafeTravels.getInstance();
 
+        // Add icon to action bar
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setLogo(R.mipmap.ic_launcher);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
+
         // Initialize the sms (text message) object to handle all sms services
         sms = new SMS(this);
         // set the phone owners first name

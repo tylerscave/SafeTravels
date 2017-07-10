@@ -40,10 +40,17 @@ public class RunningTrackerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_running_tracker);
 
+        // Add icon to action bar
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setLogo(R.mipmap.ic_launcher);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
+
+        // Add the cat driving animation to the image view
         imageView = (ImageView) findViewById(R.id.image_view);
         imageView.setBackgroundResource(R.drawable.cat_driving);
         catDrivingAnimation = (AnimationDrawable) imageView.getBackground();
 
+        // Set variables
         safeTravels = SafeTravels.getInstance();
         alarmManager = safeTravels.getAlarmManager();
         pendingAlarmIntent = safeTravels.getPendingAlarmIntent();
