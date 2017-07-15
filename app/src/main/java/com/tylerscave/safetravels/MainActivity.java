@@ -2,13 +2,9 @@ package com.tylerscave.safetravels;
 
 import android.app.AlarmManager;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,14 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * COPYRIGHT (C) 2017 Tyler Jones. All Rights Reserved.
+ * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * MainActivity is the entry point for SafeTravels.
- * This is where the user enters contact information, duration between SMS messages, and starts the service
- *
+ * This is where the user enters contact information,
+ * duration between SMS messages, and starts the service.
  * @author Tyler Jones
  */
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
-
     // Global variables
     private static SafeTravels safeTravels;
     private String contactNumber = "";
@@ -42,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private LinearLayout mainView;
     private SMS sms;
     private LocationService locationService;
+    private final int REQUEST_CODE_MULTIPLE_PERMISSIONS = 666;
 
     // TextField in GUI
     private AutoCompleteTextView textView = null;
@@ -60,10 +56,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private static ArrayList<String> numbers = new ArrayList<>();
     private static ArrayList<String> names = new ArrayList<>();
 
-//##################################### Android Lifecycle ##############################################################
 
+//##################################### Android Lifecycle ##############################################################
     /**
-     * onCreate is used to initialize everything needed for this activity including user permissions
+     * onCreate is used to initialize everything needed for this activity
      * @param savedInstanceState
      */
     @Override
@@ -79,13 +75,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getSupportActionBar().setDisplayUseLogoEnabled(true);
 
         // Initialize the sms (text message) object to handle all sms services
-        sms = new SMS(this);
-        // set the phone owners first name
-        safeTravels.setOwnerName(sms.getPhoneOwner());
-        // Get contacts and values in their perspective array lists
-        contacts = sms.getContacts();
-        numbers.addAll(contacts.get("numbers"));
-        names.addAll(contacts.get("names"));
+        if (safeTravels.runtimePermission(MainActivity.this)) {
+            sms = new SMS(this);
+            // set the phone owners first name
+            safeTravels.setOwnerName(sms.getPhoneOwner());
+            // Get contacts and values in their perspective array lists
+            contacts = sms.getContacts();
+            numbers.addAll(contacts.get("numbers"));
+            names.addAll(contacts.get("names"));
+        }
 
         // Initialize AutoCompleteTextView values to contact names
         textView = (AutoCompleteTextView) findViewById(R.id.contactField);
@@ -114,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             locationService.showLocationAlert(this);
         }
         // Start the location service
-        if (runtimePermission()) {
+        if (safeTravels.runtimePermission(MainActivity.this)) {
             startService(new Intent(this, LocationService.class));
         }
     }
@@ -125,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onResume() {
         super.onResume();
-        if (runtimePermission()) {
+        if (safeTravels.runtimePermission(MainActivity.this)) {
             startService(new Intent(this, LocationService.class));
         }
     }
@@ -148,44 +146,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         stopService(new Intent(this, LocationService.class));
     }
 
-//################################################# Runtime Permissions ################################################
-
-    /**
-     * runtimePermissions checks runtime location permissions and requests permission if not granted
-     * @return true if permission is granted
-     */
-    private boolean runtimePermission() {
-        if (Build.VERSION.SDK_INT >= 23 &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},100);
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * onRequestPermissionResult is the callback for requestPermissions(). If permission is granted do nothing and
-     * start using location. If permission is not granted, notify user that it is needed and ask again.
-     * @param requestCode
-     * @param permissions
-     * @param grantResults
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100){
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-                // start getting and using location
-            } else {
-                Toast.makeText(this, "You must enable locations to use this app", Toast.LENGTH_SHORT).show();
-                runtimePermission();
-            }
-        }
-    }
 
 //####################################### Listeners for TextView Adaptor ###############################################
-
     /**
      * onItemClick() is used to when a contact is selected from the list.
      * When this happens the user is presented with an alert showing contact name and number
@@ -215,7 +177,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
 //####################################### Radio Button Listeners ######################################################
-
     /**
      * setRadioGroupListeners() is used to manage which radio button of two radio groups
      * has been selected
@@ -247,8 +208,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         });
     }
 
-//####################################### Button Listeners ##########################################################
 
+//####################################### Button Listeners ##########################################################
     /**
      * startClicked() is the listener for the start button. In a click event the information entered
      * for the contacts and time interval are captured and used with the users last known location
@@ -325,5 +286,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             }
         };
+    }
+
+
+//###################################### Runtime Permissions ###########################################################
+    /**
+     * onRequestPermissionResult is the callback for requesting permissions. If it is called in this class,
+     * return to splash screen to get any needed permissions.
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_MULTIPLE_PERMISSIONS:
+                // Start-over to get permissions
+                startActivity(new Intent(this, SplashActivity.class));
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }
