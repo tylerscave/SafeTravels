@@ -14,12 +14,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * COPYRIGHT (C) 2017 Tyler Jones. All Rights Reserved.
+ * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * RunningTrackerActivity is is presented to the user when updates have begun.
  * @author Tyler Jones
  */
 public class RunningTrackerActivity extends AppCompatActivity {
-
     // Global Variables
     private SafeTravels safeTravels;
     private ImageView imageView;
@@ -29,8 +28,8 @@ public class RunningTrackerActivity extends AppCompatActivity {
     private Button stopButton;
     private Button startAgainButton;
 
-//##################################### Android Lifecycle ##############################################################
 
+//##################################### Android Lifecycle ##############################################################
     /**
      * onCreate is used to initialize everything needed for this activity
      * @param savedInstanceState
@@ -90,8 +89,8 @@ public class RunningTrackerActivity extends AppCompatActivity {
         stopIt();
     }
 
-//########################################## Button Listeners ##########################################################
 
+//########################################## Button Listeners ##########################################################
     /**
      * stopClicked cancels any pending location updates and stops the LocationService if running
      * when stop is pressed the UI changes and user is presented with new options
@@ -130,8 +129,8 @@ public class RunningTrackerActivity extends AppCompatActivity {
         };
     }
 
-//######################################## Helper methods ##############################################################
 
+//######################################## Helper methods ##############################################################
     /**
      * stopIt() stops any scheduled alarms and the location service
      */

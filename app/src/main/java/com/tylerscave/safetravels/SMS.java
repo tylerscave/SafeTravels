@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * COPYRIGHT (C) 2017 Tyler Jones. All Rights Reserved.
+ * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * The SMS class handles all sms activities for SafeTravels
  * This class uses the user's contact list for accessing mobile numbers and sends the SMS message
  * @author Tyler Jones

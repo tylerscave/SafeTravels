@@ -6,13 +6,12 @@ import android.content.Intent;
 import android.location.Location;
 
 /**
- * COPYRIGHT (C) 2017 Tyler Jones. All Rights Reserved.
+ * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * The AlarmReceiver class is used as a broadcast receiver to receive alarms at specified
  * intervals for sending SMS messages and for receiving location updates from the LocationService
  * @author Tyler Jones
  */
 public class AlarmReceiver extends BroadcastReceiver {
-
     // Declare intent filters
     private final String SMS_ACTION = "com.tylerscave.safetravels.action.SMS";
     private final String LOCATION_ACTION = "com.tylerscave.safetravels.action.LOCATION";

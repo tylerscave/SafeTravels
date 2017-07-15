@@ -17,14 +17,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * COPYRIGHT (C) 2017 Tyler Jones. All Rights Reserved.
+ * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * The LocationService Class is used for all location related operations.
  * Its main function is accessing the user's last known location
  * @author Tyler Jones
  */
 public class LocationService extends Service {
-
-    // Define needed variables
+    // Global variables
     private SafeTravels safeTravels;
     private LocationManager locationManager = null;
     private Location updatedLocation;
@@ -36,8 +35,8 @@ public class LocationService extends Service {
     private final String LOCATION_ACTION = "com.tylerscave.safetravels.action.LOCATION";
     private LocationListener[] locationListeners;
 
-    //##################################### Android Lifecycle ##############################################################
 
+//##################################### Android Lifecycle ##############################################################
     /**
      * onCreate is used to initialize the location listeners and location manager
      */
@@ -70,8 +69,8 @@ public class LocationService extends Service {
         stopSelf();
     }
 
-//##################################### LocationService Methods ########################################################
 
+//##################################### LocationService Methods ########################################################
     /**
      * initLocationManager initializes the location manager if not already initialized
      */
@@ -197,10 +196,6 @@ public class LocationService extends Service {
         dialog.show();
     }
 
-    @Override
-    public IBinder onBind(Intent arg0) { return null; }
-
-//############################################### Location Listener ###################################################
     /**
      * Private inner class to listen for location updates and broadcast them
      */
@@ -223,4 +218,7 @@ public class LocationService extends Service {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     }
+
+    @Override
+    public IBinder onBind(Intent arg0) { return null; }
 }
