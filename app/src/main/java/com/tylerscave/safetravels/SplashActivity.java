@@ -15,7 +15,6 @@ import java.util.Map;
  */
 public class SplashActivity extends AppCompatActivity {
     private static SafeTravels safeTravels;
-    private final int REQUEST_CODE_MULTIPLE_PERMISSIONS = 666;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +23,7 @@ public class SplashActivity extends AppCompatActivity {
 
         // Check for permission and start main activity if already granted otherwise wait for permission
         if (safeTravels.runtimePermission(SplashActivity.this)) {
-            startActivity(new Intent(this, MainActivity.class));
+            startActivity(new Intent(this, StartActivity.class));
             finish();
         }
     }
@@ -33,7 +32,7 @@ public class SplashActivity extends AppCompatActivity {
 //######################################## Runtime Permissions #########################################################
     /**
      * onRequestPermissionResult is the callback for requestPermissions(). If permission is granted move on to the
-     * MainActivity. If permission is not granted, notify user that it is needed and ask again.
+     * StartActivity. If permission is not granted, notify user that it is needed and ask again.
      * @param requestCode
      * @param permissions
      * @param grantResults
@@ -41,7 +40,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE_MULTIPLE_PERMISSIONS:
+            case Constants.REQUEST_CODE_MULTIPLE_PERMISSIONS:
             {
                 Map<String, Integer> permissionsMap = new HashMap<>();
                 // fill with all possible permissions initially
@@ -59,7 +58,7 @@ public class SplashActivity extends AppCompatActivity {
                         permissionsMap.get(android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED &&
                         permissionsMap.get(android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     // If all permissions have been granted move to the main activity
-                    startActivity(new Intent(this, MainActivity.class));
+                    startActivity(new Intent(this, StartActivity.class));
                     finish();
                 } else {
                     // Notify the user that they must allow the permissions to use the app

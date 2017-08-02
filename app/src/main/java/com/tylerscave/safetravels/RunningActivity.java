@@ -15,15 +15,17 @@ import android.widget.Toast;
 
 /**
  * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
- * RunningTrackerActivity is is presented to the user when updates have begun.
+ * RunningActivity is is presented to the user when updates have begun.
  * @author Tyler Jones
  */
-public class RunningTrackerActivity extends AppCompatActivity {
+public class RunningActivity extends AppCompatActivity {
+
     // Global Variables
     private SafeTravels safeTravels;
     private ImageView imageView;
     private AlarmManager alarmManager;
-    private PendingIntent pendingAlarmIntent;
+    private PendingIntent pendingLocationAlarmIntent;
+    private PendingIntent pendingSmsAlarmIntent;
     private AnimationDrawable catDrivingAnimation;
     private Button stopButton;
     private Button startAgainButton;
@@ -37,7 +39,7 @@ public class RunningTrackerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_running_tracker);
+        setContentView(R.layout.activity_running);
 
         // Add icon to action bar
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -52,7 +54,8 @@ public class RunningTrackerActivity extends AppCompatActivity {
         // Set variables
         safeTravels = SafeTravels.getInstance();
         alarmManager = safeTravels.getAlarmManager();
-        pendingAlarmIntent = safeTravels.getPendingAlarmIntent();
+        pendingLocationAlarmIntent = safeTravels.getPendingLocationAlarmIntent();
+        pendingSmsAlarmIntent = safeTravels.getPendingSmsAlarmIntent();
 
         // Initialize buttons
         stopButton = (Button)findViewById(R.id.stopButton);
@@ -66,9 +69,6 @@ public class RunningTrackerActivity extends AppCompatActivity {
         // Update text to show who is being updated
         String updatingString = safeTravels.getContactName().toUpperCase() + " will be updated!";
         ((TextView)findViewById (R.id.running_one)).setText (updatingString);
-
-        // Stop location updates until alarm fires
-        stopService(new Intent(this, LocationService.class));
     }
 
     /**
@@ -81,12 +81,11 @@ public class RunningTrackerActivity extends AppCompatActivity {
     }
 
     /**
-     * onDestroy is used to ensure the LocationService and the Alarm has been stopped when the activity is killed
+     * onBackPressed is overridden to give the back button similar functionality as the home button
      */
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopIt();
+    public void onBackPressed() {
+        moveTaskToBack(true);
     }
 
 
@@ -100,7 +99,7 @@ public class RunningTrackerActivity extends AppCompatActivity {
         return new OnClickListener() {
             public void onClick(View v) {
                 // Cancel the updates
-                Toast.makeText(getApplicationContext(), "******* Updates Canceled ******", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "******* Updates Canceled ******", Toast.LENGTH_SHORT).show();
                 stopIt();
 
                 // Update text and image
@@ -123,8 +122,7 @@ public class RunningTrackerActivity extends AppCompatActivity {
         return new OnClickListener() {
             public void onClick(View v) {
                 // Return to the main activity page
-                Intent myIntent = new Intent(RunningTrackerActivity.this, MainActivity.class);
-                startActivity(myIntent);
+                startActivity(new Intent(RunningActivity.this, StartActivity.class));
             }
         };
     }
@@ -136,8 +134,9 @@ public class RunningTrackerActivity extends AppCompatActivity {
      */
     private void stopIt() {
         if (alarmManager != null) {
-            alarmManager.cancel(pendingAlarmIntent);
+            alarmManager.cancel(pendingLocationAlarmIntent);
+            alarmManager.cancel(pendingSmsAlarmIntent);
         }
-        stopService(new Intent(RunningTrackerActivity.this, LocationService.class));
+        safeTravels.stopLocationService();
     }
 }

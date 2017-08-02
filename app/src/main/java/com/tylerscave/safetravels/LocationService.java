@@ -1,6 +1,8 @@
 package com.tylerscave.safetravels;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,7 +12,9 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,20 +23,15 @@ import java.util.List;
 /**
  * COPYRIGHT (C) 2017 TylersCave. All Rights Reserved.
  * The LocationService Class is used for all location related operations.
- * Its main function is accessing the user's last known location
+ * Its main function is accessing the user's last known location and starting location updates
  * @author Tyler Jones
  */
 public class LocationService extends Service {
-    // Global variables
+
+    // Define needed variables
     private SafeTravels safeTravels;
     private LocationManager locationManager = null;
     private Location updatedLocation;
-    private Location networkLocation;
-    private Location gpsLocation;
-    private Location passiveLocation;
-    private static final int LOCATION_INTERVAL = 0;
-    private static final int LOCATION_DISTANCE = 0;
-    private final String LOCATION_ACTION = "com.tylerscave.safetravels.action.LOCATION";
     private LocationListener[] locationListeners;
 
 
@@ -42,6 +41,7 @@ public class LocationService extends Service {
      */
     @Override
     public void onCreate() {
+        super.onCreate();
         safeTravels = SafeTravels.getInstance();
         locationListeners = new LocationListener[] {
                 new LocationListener(LocationManager.GPS_PROVIDER),
@@ -52,21 +52,20 @@ public class LocationService extends Service {
     }
 
     /**
-     * onDestroy removes all location listeners and stops the LocationService
+     * onTaskRemoved calls stopIt() to remove all location listeners and stop the LocationService
+     */
+    @Override
+    public void onTaskRemoved(Intent intent) {
+        this.stopIt();
+    }
+
+    /**
+     * onDestroy calls stopIt() to remove all location listeners and stop the LocationService
      */
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (locationManager != null) {
-            for (int i = 0; i < locationListeners.length; i++) {
-                try {
-                    locationManager.removeUpdates(locationListeners[i]);
-                } catch (Exception ex) {
-                    Log.i("LocationService", "fail to remove location listeners, ignore", ex);
-                }
-            }
-        }
-        stopSelf();
+        this.stopIt();
     }
 
 
@@ -82,7 +81,8 @@ public class LocationService extends Service {
 
     /**
      * onStartCommand is called when the LocationService is started. The method starts location updates for
-     * all providers and gets the last known location from each provider and stores the most recent location
+     * all providers and sets the best last known location. It also starts the service as a foreground
+     * service with a notification.
      * @param intent
      * @param flags
      * @param startId
@@ -92,53 +92,90 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
+        // Create notification for foreground service and start the service
+        Intent notificationIntent = new Intent(this, RunningActivity.class);
+        PendingIntent pendingNotificationIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        Notification notification = new NotificationCompat.Builder(this)
+                .setContentTitle(getText(R.string.app_name))
+                .setContentText(getText(R.string.notification_message))
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentIntent(pendingNotificationIntent)
+                .build();
+        startForeground(Constants.NOTIFICATION_ID, notification);
+
+        // Set the best last location and start the location updates with a timer
+        this.getProvidersLocations();
+        safeTravels.startCountdownTimer(this);
+        return START_STICKY;
+    }
+
+
+    /**
+     * getProvidersLocations starts location updates for all providers and gets the last known location
+     * from each provider and stores the best location primarily based on the most recent option, but also
+     * considering location accuracy
+     */
+    private void getProvidersLocations() {
+        // Initialize all location variables with last stored location
+        final Location oldLocation = safeTravels.getLocation();
+        Location networkLocation = oldLocation;
+        Location gpsLocation = oldLocation;
+        Location passiveLocation = oldLocation;
+        final int MAX_TIME_DIFF = Constants.ONE_MINUTE;
+
+        // Get last known location from each provider and start the location updates
         // PASSIVE_PROVIDER
         try {
             locationManager.requestLocationUpdates(
-                    LocationManager.PASSIVE_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    locationListeners[2]);
+                    LocationManager.PASSIVE_PROVIDER, Constants.LOCATION_INTERVAL, Constants.LOCATION_DISTANCE, locationListeners[2]);
             passiveLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         } catch (java.lang.SecurityException ex) {
-            Log.i("LocationService", "fail to request location update, ignore", ex);
+            Log.i("LocationService", "fail to request passive provider location update ", ex);
         } catch (IllegalArgumentException ex) {
             Log.d("LocationService", "passive provider does not exist " + ex.getMessage());
         }
-
         // NETWORK_PROVIDER
         try {
             locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    locationListeners[1]);
+                    LocationManager.NETWORK_PROVIDER, Constants.LOCATION_INTERVAL, Constants.LOCATION_DISTANCE, locationListeners[1]);
             networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         } catch (java.lang.SecurityException ex) {
-            Log.i("LocationService", "fail to request location update, ignore", ex);
+            Log.i("LocationService", "fail to request network provider location update ", ex);
         } catch (IllegalArgumentException ex) {
             Log.d("LocationService", "network provider does not exist, " + ex.getMessage());
         }
-
         // GPS_PROVIDER
         try {
             locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    locationListeners[0]);
+                    LocationManager.GPS_PROVIDER, Constants.LOCATION_INTERVAL, Constants.LOCATION_DISTANCE, locationListeners[0]);
             gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         } catch (java.lang.SecurityException ex) {
-            Log.i("LocationService", "fail to request location update, ignore", ex);
+            Log.i("LocationService", "fail to request gps provider location update", ex);
         } catch (IllegalArgumentException ex) {
             Log.d("LocationService", "gps provider does not exist " + ex.getMessage());
         }
 
-        // Set most recent location and return
-        this.setMostRecentLocation(updatedLocation, networkLocation, gpsLocation, passiveLocation);
-        return START_STICKY;
+        // Get the most recent and most accurate last known locations
+        Location lastLocation = safeTravels.getLocation();
+        Location mostRecentLocation = this.getMostRecentLocation(networkLocation, gpsLocation, passiveLocation, lastLocation);
+        Location mostAccurateLocation = this.getMostAccurateLocation(networkLocation, gpsLocation, passiveLocation, lastLocation);
+
+        // If locations are valid, set the best location based on time
+        if (mostRecentLocation != null && mostAccurateLocation != null) {
+            if (mostRecentLocation.getTime() - mostAccurateLocation.getTime() < MAX_TIME_DIFF) {
+                safeTravels.setLocation(mostAccurateLocation);
+            } else {
+                safeTravels.setLocation(mostRecentLocation);
+            }
+        }
     }
 
     /**
-     * setMostRecentLocation is a helper method to set most recent last known location
+     * setMostRecentLocation is a helper method to get the most recent location
      * @param locations
      */
-    private void setMostRecentLocation(Location ... locations) {
-        // Create arrays for the locations and their timestamps
+    private Location getMostRecentLocation(Location ... locations) {
+        Location recentLocation = null;
         List<Location> myLocations = new ArrayList<>();
         List<Long> timeStamps = new ArrayList<>();
 
@@ -149,19 +186,48 @@ public class LocationService extends Service {
                 timeStamps.add(location.getTime());
             }
         }
-
         // Get the most recent location and set it
-        Long latest = Collections.max(timeStamps);
-        for (Location location : myLocations) {
-            if(location.getTime() == latest) {
-                safeTravels.setLocation(location);
+        if (timeStamps.size() > 0) {
+            Long latest = Collections.max(timeStamps);
+            for (Location location : myLocations) {
+                if (location.getTime() == latest) {
+                    recentLocation = location;
+                }
             }
         }
+        return recentLocation;
     }
 
     /**
-     * locationEnabled() is used to determine whether the phones location services
-     * are enabled or not
+     * setMostAccurateLocation is a helper method to get the most accurate location
+     * @param locations
+     */
+    private Location getMostAccurateLocation (Location ... locations) {
+        Location accurateLocation = null;
+        List<Location> myLocations = new ArrayList<>();
+        List<Float> accuracies = new ArrayList<>();
+
+        // Add all valid locations and accuracies to arrays
+        for (Location location : locations) {
+            if (location != null) {
+                myLocations.add(location);
+                accuracies.add(location.getAccuracy());
+            }
+        }
+        // Get the most accurate location and set it
+        if (accuracies.size() > 0) {
+            Float mostAccurate = Collections.min(accuracies);
+            for (Location location : myLocations) {
+                if (location.getAccuracy() == mostAccurate) {
+                    accurateLocation = location;
+                }
+            }
+        }
+        return accurateLocation;
+    }
+
+    /**
+     * locationEnabled() is used to determine whether the phones location services are enabled or not.
      * @return true if enabled, otherwise return false
      */
     protected boolean locationEnabled(Context context) {
@@ -172,7 +238,7 @@ public class LocationService extends Service {
 
     /**
      * showLocationAlert() is used to alert the user that their location services are off.
-     * It also gives the user the option to Enable Location
+     * It also gives the user the option to Enable Location.
      * @param activity
      */
     protected void showLocationAlert(Activity activity) {
@@ -197,6 +263,33 @@ public class LocationService extends Service {
     }
 
     /**
+     * stopIt() removes all location listeners and stops the LocationService
+     */
+    private void stopIt() {
+        if (locationManager != null) {
+            for (int i = 0; i < locationListeners.length; i++) {
+                try {
+                    locationManager.removeUpdates(locationListeners[i]);
+                } catch (Exception ex) {
+                    Log.i("LocationService", "fail to remove location listeners. ", ex);
+                }
+            }
+        }
+        stopSelf();
+    }
+
+    /**
+     * Must override onBind in any service, but we are not binding our service so we simply return null
+     * @param intent
+     * @return null
+     */
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {return null;}
+
+
+//########################################## Location Listener Class ###################################################
+    /**
      * Private inner class to listen for location updates and broadcast them
      */
     private class LocationListener implements android.location.LocationListener {
@@ -206,10 +299,11 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             updatedLocation.set(location);
-            Intent alarmIntent = new Intent();
-            alarmIntent.setAction(LOCATION_ACTION);
-            alarmIntent.putExtra("current_location", location);
-            sendBroadcast(alarmIntent);
+            // Send broadcast with location intent to update SafeTravels with updated location
+            Intent locationAlarmIntent = new Intent();
+            locationAlarmIntent.setAction(Constants.LOCATION_ACTION);
+            locationAlarmIntent.putExtra("current_location", location);
+            sendBroadcast(locationAlarmIntent);
         }
         @Override
         public void onProviderDisabled(String provider) {}
@@ -218,7 +312,4 @@ public class LocationService extends Service {
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     }
-
-    @Override
-    public IBinder onBind(Intent arg0) { return null; }
 }

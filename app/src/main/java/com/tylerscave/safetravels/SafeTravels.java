@@ -1,13 +1,16 @@
 package com.tylerscave.safetravels;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Application;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,14 +29,15 @@ public class SafeTravels extends Application {
     // Global variables
     private static SafeTravels safeTravels;
     private AlarmManager alarmManager;
-    private PendingIntent pendingAlarmIntent;
+    private PendingIntent pendingLocationAlarmIntent;
+    private PendingIntent pendingSmsAlarmIntent;
     private Location location;
     private String contactName;
     private String contactNumber;
     private String phoneOwner;
-    private final String SMS_ACTION = "com.tylerscave.safetravels.action.SMS";
-    private final int REQUEST_CODE_MULTIPLE_PERMISSIONS = 666;
+    private CountDownTimer timer;
 
+//##################################### Android Lifecycle ##############################################################
     /**
      * Constructor for SafeTravels
      * Initialize all needed variables
@@ -42,13 +46,20 @@ public class SafeTravels extends Application {
     public void onCreate() {
         super.onCreate();
         safeTravels = this;
-        // Initialize variables needed for broadcast
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        alarmIntent.setAction(SMS_ACTION);
-        pendingAlarmIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, 0);
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        location = null;
+        // Initialize variables needed for LocationService broadcast alarm
+        Intent LocationAlarmIntent = new Intent(this, AlarmReceiver.class);
+        LocationAlarmIntent.setAction(Constants.LOCATION_SERVICE_ACTION);
+        pendingLocationAlarmIntent = PendingIntent.getBroadcast(this, 0, LocationAlarmIntent, 0);
+        // Initialize variables needed for SMS broadcast alarm
+        Intent SmsAlarmIntent = new Intent(this, AlarmReceiver.class);
+        SmsAlarmIntent.setAction(Constants.SMS_ACTION);
+        pendingSmsAlarmIntent = PendingIntent.getBroadcast(this, 0, SmsAlarmIntent, 0);
     }
 
+
+//############################# SafeTravels App Package Methods ########################################################
     /**
      * getInstance() is used to get a singleton instance of SafeTravels
      * @return SafeTravels
@@ -61,51 +72,77 @@ public class SafeTravels extends Application {
     }
 
     /**
-     * setBroadcastAlarm is called from main activity to set the SMS alarm
+     * setBroadcastAlarm is called from main activity to set the LocationService alarm
      */
-    protected void setBroadcastAlarm(int interval) {
+    protected void setLocationServiceBroadcastAlarm(long interval) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), interval, pendingAlarmIntent);
+        long adjustedInterval = interval - Constants.THIRTY_SECONDS;
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), adjustedInterval, pendingLocationAlarmIntent);
     }
 
-
-//############## Getters and Setters for variables needed across the SafeTravels application #####################
-    protected AlarmManager getAlarmManager() {
-        return alarmManager;
+    /**
+     * setBroadcastAlarm is called to set the SMS alarm after LocationService has started
+     */
+    protected void setSmsBroadcastAlarm(long interval) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        long adjustedInterval = calendar.getTimeInMillis() + interval;
+        alarmManager.set(AlarmManager.RTC_WAKEUP, adjustedInterval, pendingSmsAlarmIntent);
     }
 
-    protected PendingIntent getPendingAlarmIntent() {
-        return pendingAlarmIntent;
+    /**
+     * startLocationService is a wrapper to start the LocationService
+     */
+    protected void startLocationService() {
+        if (!isLocationServiceRunning(LocationService.class)) {
+            startService(new Intent(getBaseContext(), LocationService.class));
+        }
     }
 
-    protected Location getLocation() {
-        return location;
-    }
-    protected void setLocation(Location location) {
-        this.location = location;
-    }
-
-    protected String getContactNumber() {
-        return contactNumber;
-    }
-    protected void setContactNumber(String number) {
-        this.contactNumber = number;
+    /**
+     * stopLocationService is a wrapper to stop the LocationService
+     */
+    protected void stopLocationService() {
+        if (isLocationServiceRunning(LocationService.class)) {
+            stopService(new Intent(getBaseContext(), LocationService.class));
+        }
     }
 
-    protected String getContactName() {
-        return contactName;
-    }
-    protected void setContactName(String name) {
-        this.contactName = name;
+    /**
+     * isLocationServiceRunning is used to determine if we need to restart the service or not
+     * @param serviceClass
+     * @return
+     */
+    protected boolean isLocationServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    protected String getOwnerName() {
-        return phoneOwner;
+    /**
+     * startCountdown timer is used to set a timer that will stop the LocationService after 2 minutes
+     * @param context
+     */
+    protected void startCountdownTimer(final Context context) {
+        // Set countdown timer to stop service it has been on for more than 2 minutes
+        timer = new CountDownTimer(Constants.TWO_MINUTES, Constants.ONE_MINUTE) {
+            @Override
+            public void onTick(long millisUntilFinished) {}
+            public void onFinish() {
+                safeTravels.stopLocationService();
+            }
+        };timer.start();
     }
-    protected void setOwnerName(String name) {
-        this.phoneOwner = name;
-    }
+
+    /**
+     * stopCountdownTimer cancels the countdown timer for the LocationService
+     */
+    protected void stopCountdownTimer () { timer.cancel(); }
 
 
 //################################################# Runtime Permissions ################################################
@@ -139,7 +176,7 @@ public class SafeTravels extends Application {
                                     if (Build.VERSION.SDK_INT >= 23) {
                                         ActivityCompat.requestPermissions(activityContext,
                                                 permissionsList.toArray(new String[permissionsList.size()]),
-                                                REQUEST_CODE_MULTIPLE_PERMISSIONS);
+                                                Constants.REQUEST_CODE_MULTIPLE_PERMISSIONS);
                                     }
                                 }
                             });
@@ -147,7 +184,7 @@ public class SafeTravels extends Application {
                 }
                 ActivityCompat.requestPermissions(activityContext,
                         permissionsList.toArray(new String[permissionsList.size()]),
-                        REQUEST_CODE_MULTIPLE_PERMISSIONS);
+                        Constants.REQUEST_CODE_MULTIPLE_PERMISSIONS);
                 return false;
             }
             return true;
@@ -206,5 +243,47 @@ public class SafeTravels extends Application {
                 });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+
+//################ Getters and Setters for variables needed across the SafeTravels application #########################
+    protected AlarmManager getAlarmManager() {
+        return alarmManager;
+    }
+
+    protected PendingIntent getPendingSmsAlarmIntent() {
+        return pendingSmsAlarmIntent;
+    }
+
+    protected PendingIntent getPendingLocationAlarmIntent() {
+        return pendingLocationAlarmIntent;
+    }
+
+    protected Location getLocation() {
+        return location;
+    }
+    protected void setLocation(Location location) {
+        this.location = location;
+    }
+
+    protected String getContactNumber() {
+        return contactNumber;
+    }
+    protected void setContactNumber(String number) {
+        this.contactNumber = number;
+    }
+
+    protected String getContactName() {
+        return contactName;
+    }
+    protected void setContactName(String name) {
+        this.contactName = name;
+    }
+
+    protected String getOwnerName() {
+        return phoneOwner;
+    }
+    protected void setOwnerName(String name) {
+        this.phoneOwner = name;
     }
 }

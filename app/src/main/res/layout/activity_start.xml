@@ -80,20 +80,12 @@
             android:gravity="center">
 
             <RadioButton
-                android:id="@+id/one_min"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                style="@style/RadioButton"
-                android:text="@string/one_min_radio"/>
-
-            <RadioButton
                 android:id="@+id/five_min"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 style="@style/RadioButton"
-                android:text="@string/five_min_radio" />
+                android:text="@string/five_min_radio"/>
 
             <RadioButton
                 android:id="@+id/ten_min"
@@ -102,6 +94,14 @@
                 android:layout_weight="1"
                 style="@style/RadioButton"
                 android:text="@string/ten_min_radio" />
+
+            <RadioButton
+                android:id="@+id/twenty_min"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                style="@style/RadioButton"
+                android:text="@string/twenty_min_radio" />
         </RadioGroup>
 
         <RadioGroup
@@ -130,12 +130,12 @@
                 android:text="@string/one_hour_radio" />
 
             <RadioButton
-                android:id="@+id/six_hour"
+                android:id="@+id/two_hour"
+                style="@style/RadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                style="@style/RadioButton"
-                android:text="@string/six_hour_radio"/>
+                android:text="@string/two_hour_radio"/>
         </RadioGroup>
     </LinearLayout>
 
